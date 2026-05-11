@@ -377,7 +377,7 @@ wheels = [
 [[package]]
 name = "learn2slither-42"
 version = "0.1.0"
-source = { virtual = "." }
+source = { editable = "." }
 dependencies = [
     { name = "flake8" },
     { name = "matplotlib" },

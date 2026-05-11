@@ -5,7 +5,7 @@ from srcs.constants import (
     BACKGROUND_COLOR, BORDER_COLOR, SCORE_COLOR,
 )
 from srcs.snake import Snake
-from srcs.apple import Apple
+from srcs.apple import Apple, RedApple
 
 
 class Game:
@@ -19,8 +19,27 @@ class Game:
 
     def _reset(self):
         self.snake = Snake()
-        self.apple = Apple(self.snake)
+        self.green_apples = []
+        self.red_apple = RedApple(list(self.snake.positions))
+        for _ in range(2):
+            forbidden = (
+                list(self.snake.positions)
+                + [self.red_apple.position]
+                + [a.position for a in self.green_apples]
+            )
+            self.green_apples.append(Apple(forbidden))
         self.score = 0
+
+    def _all_apples(self):
+        return [self.red_apple] + self.green_apples
+
+    def _obstacles_excluding(self, apple):
+        positions = list(self.snake.positions)
+        for other in self._all_apples():
+            if other is apple:
+                continue
+            positions.append(other.position)
+        return positions
 
     def run(self):
         while True:
@@ -53,10 +72,14 @@ class Game:
     def _update(self):
         if not self.snake.move():
             return False
-        if self.snake.positions[0] == self.apple.position:
-            self.score += 1
-            self.snake.grow_snake()
-            self.apple.respawn(self.snake)
+        head = self.snake.positions[0]
+        for apple in self._all_apples():
+            if head == apple.position:
+                self.score += apple.on_eat(self.snake)
+                if not self.snake.positions:
+                    return False
+                apple.respawn(self._obstacles_excluding(apple))
+                break
         return True
 
     def _draw(self):
@@ -68,7 +91,8 @@ class Game:
             CELL_SIZE,
         )
         self.snake.draw(self.screen)
-        self.apple.draw(self.screen)
+        for apple in self._all_apples():
+            apple.draw(self.screen)
         score_text = self.font.render(
             f"Score: {self.score}", True, SCORE_COLOR
         )
