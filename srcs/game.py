@@ -93,7 +93,7 @@ class Game:
             self.snake.change_direction((1, 0))
         alive, event = self._update()
         reward = self.determine_reward(alive, event)
-        next_state = self.get_state()
+        next_state = self.get_state() if alive else None
         return (next_state, reward, alive)
 
     def _all_apples(self):

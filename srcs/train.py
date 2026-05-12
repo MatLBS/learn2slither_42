@@ -1,27 +1,51 @@
-from srcs.game import Game
+import argparse
 from srcs.snakeAI import SnakeAI
 
 
-def train(sessions=100, display=False):
-    agent = SnakeAI()
-    game = Game()
-
-    for episode in range(sessions):
-        state = game.get_state()
-        while True:
-            action = agent.choose_action(state)
-            next_state, reward, alive = game.step(action)
-            agent.update_q_table(state, action, reward, next_state)
-            state = next_state
-            if display:
-                game.render()
-            if not alive:
-                break
-        game._reset()
-
-
 def main():
-    train(display=True)
+    parser = argparse.ArgumentParser(description="Train the Snake Q-learning agent")
+    parser.add_argument(
+        "-e",
+        "--episodes",
+        type=int,
+        default=100,
+        help="Number of training episodes (default: 100)",
+    )
+    parser.add_argument(
+        "--display",
+        action="store_true",
+        help="Display the board during training",
+    )
+    parser.add_argument(
+        "-save",
+        type=str,
+        default=None,
+        metavar="PATH",
+        help="Path to save the trained Q-table (e.g. models/10sess.txt)",
+    )
+    parser.add_argument(
+        "-load",
+        type=str,
+        default=None,
+        metavar="PATH",
+        help="Path to load the pre-trained Q-table (e.g. models/10sess.txt)",
+    )
+    parser.add_argument(
+        "-dontlearn",
+        action="store_true",
+        help="Do not train the agent",
+    )
+    args = parser.parse_args()
+    agent = SnakeAI()
+
+    if args.load:
+        agent.load_q_table(args.load)
+        agent.max_epsilon = 0
+
+    agent.train(episodes=args.episodes, display=args.display, learn=not args.dontlearn)
+    if args.save:
+        agent.save_q_table(args.save)
+        print(f"Q-table saved to {args.save}")
 
 
 if __name__ == "__main__":
