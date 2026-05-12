@@ -12,6 +12,7 @@ dependencies = [
 
 [project.scripts]
 snake = "srcs.main:main"
+train = "srcs.train:main"
 
 [build-system]
 requires = ["hatchling"]
