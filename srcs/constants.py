@@ -1,4 +1,4 @@
-# Constants for the Snake game
+# Constants for the Snake env
 SCREEN_WIDTH = 720
 SCREEN_HEIGHT = 720
 CELL_SIZE = 60

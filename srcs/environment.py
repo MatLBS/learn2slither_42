@@ -18,16 +18,16 @@ from srcs.snake import Snake
 from srcs.apple import Apple, RedApple
 
 
-class Game:
+class Environment:
     def __init__(self):
         pygame.init()
         self.screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
         pygame.display.set_caption("Snake")
         self.clock = pygame.time.Clock()
         self.font = pygame.font.Font(None, 36)
-        self._reset()
+        self.reset()
 
-    def _reset(self) -> None:
+    def reset(self) -> None:
         self.snake = Snake()
         self.green_apples = []
         self.red_apple = RedApple(list(self.snake.positions))
@@ -192,5 +192,5 @@ class Game:
                     pygame.quit()
                     sys.exit()
                 elif event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
-                    self._reset()
+                    self.reset()
                     return

@@ -1,5 +1,5 @@
 import argparse
-from srcs.snakeAI import SnakeAI
+from srcs.agent import Agent
 from srcs.display import plot_scores
 
 
@@ -43,7 +43,7 @@ def main():
         help="Do not train the agent",
     )
     args = parser.parse_args()
-    agent = SnakeAI()
+    agent = Agent()
 
     if args.load:
         agent.load_q_table(args.load)

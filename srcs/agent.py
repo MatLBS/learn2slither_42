@@ -1,21 +1,20 @@
 import os
 import random
 import numpy as np
-import matplotlib.pyplot as plt
 from tqdm import tqdm
-from srcs.game import Game
+from srcs.environment import Environment
 
 
-class SnakeAI:
+class Agent:
     def __init__(self):
         self.n_actions = 4
         self.q_table = {}
-        self.learning_rate = 0.7
-        self.gamma = 0.95
+        self.learning_rate = 0.1
+        self.discount_rate = 0.95
         self.max_epsilon = 1.0
         self.min_epsilon = 0.05
         self.decay_rate = 0.00005
-        self.game = Game()
+        self.env = Environment()
 
     def add_state(self, state: str) -> None:
         if state not in self.q_table:
@@ -30,7 +29,7 @@ class SnakeAI:
             self.add_state(new_state)
             future_value = np.max(self.q_table[new_state])
         self.q_table[state][action] += self.learning_rate * (
-            reward + self.gamma * future_value - self.q_table[state][action]
+            reward + self.discount_rate * future_value - self.q_table[state][action]
         )
 
     def epsilon_greedy_policy(self, state: str) -> int:
@@ -66,12 +65,13 @@ class SnakeAI:
     def train(self, episodes=100, display=False, learn=True) -> list[int]:
         scores = []
         for episode in tqdm(range(episodes), desc="Training", unit="ep"):
-            state = self.game.get_state()
+            self.env.reset()
+            state = self.env.get_state()
             episode_score = 0
 
             while True:
                 action = self.choose_action(state)
-                new_state, reward, done = self.game.step(action)
+                new_state, reward, done = self.env.step(action)
                 if learn:
                     self.update_q_table(state, action, reward, new_state)
                 episode_score += reward
@@ -79,21 +79,6 @@ class SnakeAI:
                     break
                 state = new_state
                 if display:
-                    self.game.render()
+                    self.env.render()
             scores.append(episode_score)
-            # print(f"Episode {episode + 1}/{episodes}")
-            # print("State:", state)
-            # print(
-            #     "Action:",
-            #     (
-            #         "Snake goes LEFT"
-            #         if action == 0
-            #         else (
-            #             "Snake goes RIGHT"
-            #             if action == 1
-            #             else "Snake goes UP" if action == 2 else "Snake goes DOWN"
-            #         )
-            #     ),
-            # )
-            self.game._reset()
         return scores

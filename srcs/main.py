@@ -1,8 +1,8 @@
-from srcs.game import Game
+from srcs.environment import Environment
 
 
 def main():
-    Game().run()
+    Environment().run()
 
 
 if __name__ == "__main__":
