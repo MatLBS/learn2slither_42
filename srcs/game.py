@@ -27,7 +27,7 @@ class Game:
         self.font = pygame.font.Font(None, 36)
         self._reset()
 
-    def _reset(self):
+    def _reset(self) -> None:
         self.snake = Snake()
         self.green_apples = []
         self.red_apple = RedApple(list(self.snake.positions))
@@ -40,13 +40,13 @@ class Game:
             self.green_apples.append(Apple(forbidden))
         self.score = 0
 
-    def get_state(self):
+    def get_state(self) -> str:
         head_x, head_y = self.snake.positions[0]
         body = set(self.snake.positions[1:])
         green_positions = {a.position for a in self.green_apples}
         red_position = self.red_apple.position
 
-        def cell_char(x, y):
+        def cell_char(x: int, y: int) -> str:
             if x == 0 or x == GRID_SIZE - 1 or y == 0 or y == GRID_SIZE - 1:
                 return "W"
             if (x, y) == (head_x, head_y):
@@ -63,7 +63,7 @@ class Game:
         col = "".join(cell_char(head_x, y) for y in range(GRID_SIZE))
         return row + "_" + col
 
-    def render(self):
+    def render(self) -> None:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
@@ -72,8 +72,8 @@ class Game:
         pygame.display.flip()
         self.clock.tick(FPS)
 
-    def determine_reward(self, alive, event):
-        if not alive:
+    def determine_reward(self, done: bool, event: str | None) -> int:
+        if not done:
             return -100
         elif event == "red":
             return -10
@@ -82,7 +82,7 @@ class Game:
         else:
             return -1
 
-    def step(self, action):
+    def step(self, action: tuple[int, int]) -> tuple:
         if action == UP:
             self.snake.change_direction((0, -1))
         elif action == DOWN:
@@ -91,15 +91,15 @@ class Game:
             self.snake.change_direction((-1, 0))
         elif action == RIGHT:
             self.snake.change_direction((1, 0))
-        alive, event = self._update()
-        reward = self.determine_reward(alive, event)
-        next_state = self.get_state() if alive else None
-        return (next_state, reward, alive)
+        done, event = self._update()
+        reward = self.determine_reward(done, event)
+        new_state = self.get_state() if done else None
+        return (new_state, reward, done)
 
-    def _all_apples(self):
+    def _all_apples(self) -> list:
         return [self.red_apple] + self.green_apples
 
-    def _obstacles_excluding(self, apple):
+    def _obstacles_excluding(self, apple: Apple) -> list:
         positions = list(self.snake.positions)
         for other in self._all_apples():
             if other is apple:
@@ -107,20 +107,20 @@ class Game:
             positions.append(other.position)
         return positions
 
-    def run(self):
+    def run(self) -> None:
         while True:
             self._handle_events()
-            alive, _ = self._update()
+            done, _ = self._update()
             self._draw()
             pygame.display.flip()
             self.clock.tick(FPS)
 
-            if not alive:
+            if not done:
                 self._show_end_screen("GAME OVER")
             elif len(self.snake.positions) == GRID_SIZE * GRID_SIZE:
                 self._show_end_screen("YOU WIN!")
 
-    def _handle_events(self):
+    def _handle_events(self) -> None:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
@@ -135,7 +135,7 @@ class Game:
                 elif event.key == pygame.K_RIGHT:
                     self.snake.change_direction((1, 0))
 
-    def _update(self):
+    def _update(self) -> tuple[bool, str | None]:
         if not self.snake.move():
             return False, None
         head = self.snake.positions[0]
@@ -152,7 +152,7 @@ class Game:
                     return True, "green"
         return True, None
 
-    def _draw(self):
+    def _draw(self) -> None:
         self.screen.fill(BACKGROUND_COLOR)
         pygame.draw.rect(
             self.screen,
@@ -166,7 +166,7 @@ class Game:
         score_text = self.font.render(f"Score: {self.score}", True, SCORE_COLOR)
         self.screen.blit(score_text, (10, 10))
 
-    def _show_end_screen(self, title):
+    def _show_end_screen(self, title: str) -> None:
         self.screen.fill(BACKGROUND_COLOR)
         title_surf = self.font.render(title, True, SCORE_COLOR)
         score_surf = self.font.render(f"Score: {self.score}", True, SCORE_COLOR)
@@ -185,7 +185,7 @@ class Game:
         pygame.display.flip()
         self._wait_for_restart()
 
-    def _wait_for_restart(self):
+    def _wait_for_restart(self) -> None:
         while True:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:

@@ -1,5 +1,6 @@
 import argparse
 from srcs.snakeAI import SnakeAI
+from srcs.display import plot_scores
 
 
 def main():
@@ -12,6 +13,12 @@ def main():
         help="Number of training episodes (default: 100)",
     )
     parser.add_argument(
+        "--show-render",
+        action="store_true",
+        help="Show a graph of the training progress (scores per episode) after training",
+    )
+    parser.add_argument(
+        "-d",
         "--display",
         action="store_true",
         help="Display the board during training",
@@ -40,12 +47,20 @@ def main():
 
     if args.load:
         agent.load_q_table(args.load)
+
+    if args.dontlearn:
         agent.max_epsilon = 0
 
-    agent.train(episodes=args.episodes, display=args.display, learn=not args.dontlearn)
+    scores = agent.train(
+        episodes=args.episodes,
+        display=args.display,
+        learn=not args.dontlearn,
+    )
     if args.save:
         agent.save_q_table(args.save)
         print(f"Q-table saved to {args.save}")
+    if args.show_render:
+        plot_scores(scores, window=100)
 
 
 if __name__ == "__main__":
