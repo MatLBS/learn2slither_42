@@ -32,17 +32,15 @@ Q-Learning teaches the agent which action `a` is best in each state `s`. It main
 
 The agent learns by repeatedly applying the **Bellman equation** to update its estimates:
 
-```
-Q(s, a) ← Q(s, a) + α · [ r + γ · max(Q(s', a')) − Q(s, a) ]
-```
+<img width="643" height="63" alt="Capture d’écran 2026-05-14 à 16 13 46" src="https://github.com/user-attachments/assets/5e9412ca-530a-4cd9-96f6-d467acbfacb0" />
 
 Where:
 
-- `α` (`learning_rate`) — how much new information overrides old
-- `γ` (`discount_rate`) — how much we value future rewards
-- `r` — immediate reward
-- `s'` — next state
-- `max(Q(s', a'))` — best estimated future value
+- `α` (`learning_rate/alpha`) — how much new information overrides old
+- `γ` (`discount_rate/gamma`) — how much we value future rewards
+- `R` — immediate reward
+- `S'` — next state
+- `A'` - best next action in state S'
 
 ### ε-greedy policy
 
@@ -55,30 +53,7 @@ To balance **exploration** (trying new things) and **exploitation** (using what 
 
 ---
 
-## State representation
-
-Each state is encoded as a **12-bit binary tuple** capturing what the snake needs to know:
-
-| Bits | Feature | Encoding |
-|------|---------|----------|
-| 0–3 | Current direction | one-hot: UP / RIGHT / DOWN / LEFT |
-| 4–7 | Closest green apple direction | up / right / down / left |
-| 8–11 | Immediate danger | wall / body / red apple in each cardinal direction |
-
-This compact encoding bounds the state space to **2¹² = 4096 states**, making tabular Q-learning tractable.
-
----
-
-## Reward function
-
-| Event | Reward |
-|-------|--------|
-| Eat green apple | **+10** |
-| Eat red apple | **−10** |
-| Die (wall / body / shrink to 0) | **−100** |
-| Survive one tick | **−1** |
-
-The tick penalty pushes the agent to **finish quickly** instead of looping safely without eating.
+<img width="533" height="430" alt="Capture d’écran 2026-05-14 à 16 10 34" src="https://github.com/user-attachments/assets/82022ad6-6f62-4c66-9b47-95caa2958885" />
 
 ---
 
