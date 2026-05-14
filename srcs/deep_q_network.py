@@ -57,14 +57,14 @@ class DQNAgent(Agent):
             q_values = self.policy_net(state_tensor)
             return int(q_values.argmax(dim=1).item())
 
-    def save_q_table(self, path: str) -> None:
+    def save_q(self, path: str) -> None:
         directory = os.path.dirname(path)
         if directory:
             os.makedirs(directory, exist_ok=True)
         torch.save(self.policy_net.state_dict(), path)
         print(f"Model saved to {path}")
 
-    def load_q_table(self, path: str) -> None:
+    def load_q(self, path: str) -> None:
         state_dict = torch.load(path)
         self.policy_net.load_state_dict(state_dict)
         self.target_net.load_state_dict(state_dict)
