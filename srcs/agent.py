@@ -8,7 +8,7 @@ from srcs.display import plot_scores
 
 
 class Agent:
-    def __init__(self):
+    def __init__(self, grid_size: int | None = None):
         self.n_actions = 4
         self.q_table = {}
         self.learning_rate = 0.1
@@ -17,7 +17,10 @@ class Agent:
         self.min_epsilon = 0.05
         self.decay_rate = 0.00005
         self.scores = []
-        self.env = Environment()
+        if grid_size is None:
+            self.env = Environment()
+        else:
+            self.env = Environment(grid_size=grid_size)
 
     def add_state(self, state: str) -> None:
         if state not in self.q_table:

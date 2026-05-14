@@ -1,10 +1,12 @@
 import random
 import pygame
-from srcs.constants import CELL_SIZE, GRID_SIZE, SNAKE_COLOR
+from srcs.constants import SNAKE_COLOR
 
 
 class Snake:
-    def __init__(self):
+    def __init__(self, grid_size: int, cell_size: int):
+        self.grid_size = grid_size
+        self.cell_size = cell_size
         self._random_start()
         self._grow = False
 
@@ -14,9 +16,9 @@ class Snake:
         dx, dy = self.direction
 
         x_min = 1 + max(0, 2 * dx)
-        x_max = GRID_SIZE - 2 + min(0, 2 * dx)
+        x_max = self.grid_size - 2 + min(0, 2 * dx)
         y_min = 1 + max(0, 2 * dy)
-        y_max = GRID_SIZE - 2 + min(0, 2 * dy)
+        y_max = self.grid_size - 2 + min(0, 2 * dy)
 
         head_x = random.randint(x_min, x_max)
         head_y = random.randint(y_min, y_max)
@@ -29,7 +31,8 @@ class Snake:
         new_head = (head_x + delta_x, head_y + delta_y)
 
         in_bounds = (
-            1 <= new_head[0] < GRID_SIZE - 1 and 1 <= new_head[1] < GRID_SIZE - 1
+            1 <= new_head[0] < self.grid_size - 1
+            and 1 <= new_head[1] < self.grid_size - 1
         )
         if new_head in self.positions or not in_bounds:
             return False
@@ -56,20 +59,21 @@ class Snake:
             self.positions.pop()
 
     def draw(self, surface: pygame.Surface) -> None:
+        cs = self.cell_size
         for x, y in self.positions:
-            rect = pygame.Rect(x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE)
+            rect = pygame.Rect(x * cs, y * cs, cs, cs)
             pygame.draw.rect(surface, SNAKE_COLOR, rect)
 
         if not self.positions:
             return
         head_x, head_y = self.positions[0]
-        eye_size = CELL_SIZE // 5
-        eye_y_offset = CELL_SIZE // 3
-        eye_x_inset = CELL_SIZE // 6
-        eye_y = head_y * CELL_SIZE + eye_y_offset
-        eye1 = pygame.Rect(head_x * CELL_SIZE + eye_x_inset, eye_y, eye_size, eye_size)
+        eye_size = cs // 5
+        eye_y_offset = cs // 3
+        eye_x_inset = cs // 6
+        eye_y = head_y * cs + eye_y_offset
+        eye1 = pygame.Rect(head_x * cs + eye_x_inset, eye_y, eye_size, eye_size)
         eye2 = pygame.Rect(
-            (head_x + 1) * CELL_SIZE - eye_x_inset - eye_size,
+            (head_x + 1) * cs - eye_x_inset - eye_size,
             eye_y,
             eye_size,
             eye_size,

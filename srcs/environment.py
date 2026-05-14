@@ -1,12 +1,12 @@
 import sys
 import pygame
-import numpy as np
 from srcs.constants import (
     SCREEN_WIDTH,
     SCREEN_HEIGHT,
-    CELL_SIZE,
     GRID_SIZE,
     FPS,
+    SPEEDS,
+    DEFAULT_SPEED_IDX,
     BACKGROUND_COLOR,
     BORDER_COLOR,
     SCORE_COLOR,
@@ -20,25 +20,31 @@ from srcs.apple import Apple, RedApple
 
 
 class Environment:
-    def __init__(self):
+    def __init__(self, grid_size: int = GRID_SIZE):
+        self.grid_size = grid_size
+        self.cell_size = SCREEN_WIDTH // grid_size
         pygame.init()
         self.screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
         pygame.display.set_caption("Snake")
         self.clock = pygame.time.Clock()
         self.font = pygame.font.Font(None, 36)
+        self.speed_idx = DEFAULT_SPEED_IDX
+        self.step_by_step = False
         self.reset()
 
     def reset(self) -> None:
-        self.snake = Snake()
+        self.snake = Snake(self.grid_size, self.cell_size)
         self.green_apples = []
-        self.red_apple = RedApple(list(self.snake.positions))
+        self.red_apple = RedApple(
+            list(self.snake.positions), self.grid_size, self.cell_size
+        )
         for _ in range(2):
             forbidden = (
                 list(self.snake.positions)
                 + [self.red_apple.position]
                 + [a.position for a in self.green_apples]
             )
-            self.green_apples.append(Apple(forbidden))
+            self.green_apples.append(Apple(forbidden, self.grid_size, self.cell_size))
         self.score = 0
 
     def get_state(self) -> str | None:
@@ -51,9 +57,9 @@ class Environment:
         state = []
 
         def is_danger(x: int, y: int) -> int:
-            if x <= 0 or x >= GRID_SIZE - 1:
+            if x <= 0 or x >= self.grid_size - 1:
                 return 1
-            if y <= 0 or y >= GRID_SIZE - 1:
+            if y <= 0 or y >= self.grid_size - 1:
                 return 1
             if (x, y) in body:
                 return 1
@@ -87,14 +93,19 @@ class Environment:
         state.append(is_danger(head_x - 1, head_y))
         return tuple(state)
 
+    def _cycle_speed(self) -> None:
+        self.speed_idx = (self.speed_idx + 1) % len(SPEEDS)
+
     def render(self) -> None:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
+            elif event.type == pygame.KEYDOWN and event.key == pygame.K_TAB:
+                self._cycle_speed()
         self._draw()
         pygame.display.flip()
-        self.clock.tick(FPS)
+        self.clock.tick(FPS * SPEEDS[self.speed_idx])
 
     def determine_reward(self, done: bool, event: str | None) -> int:
         if not done:
@@ -133,31 +144,42 @@ class Environment:
 
     def run(self) -> None:
         while True:
-            self._handle_events()
-            done, _ = self._update()
+            arrow_pressed = self._handle_events()
+            if not self.step_by_step or arrow_pressed:
+                done, _ = self._update()
+            else:
+                done = True
             self._draw()
             pygame.display.flip()
-            self.clock.tick(FPS)
+            self.clock.tick(FPS * SPEEDS[self.speed_idx])
 
             if not done:
                 self._show_end_screen("GAME OVER")
-            elif len(self.snake.positions) == GRID_SIZE * GRID_SIZE:
+            elif len(self.snake.positions) == self.grid_size * self.grid_size:
                 self._show_end_screen("YOU WIN!")
 
-    def _handle_events(self) -> None:
+    def _handle_events(self) -> bool:
+        arrow_pressed = False
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
             elif event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_UP:
+                if event.key == pygame.K_TAB:
+                    self._cycle_speed()
+                elif event.key == pygame.K_UP:
                     self.snake.change_direction((0, -1))
+                    arrow_pressed = True
                 elif event.key == pygame.K_DOWN:
                     self.snake.change_direction((0, 1))
+                    arrow_pressed = True
                 elif event.key == pygame.K_LEFT:
                     self.snake.change_direction((-1, 0))
+                    arrow_pressed = True
                 elif event.key == pygame.K_RIGHT:
                     self.snake.change_direction((1, 0))
+                    arrow_pressed = True
+        return arrow_pressed
 
     def _update(self) -> tuple[bool, str | None]:
         if not self.snake.move():
@@ -182,13 +204,17 @@ class Environment:
             self.screen,
             BORDER_COLOR,
             pygame.Rect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT),
-            CELL_SIZE,
+            self.cell_size,
         )
         self.snake.draw(self.screen)
         for apple in self._all_apples():
             apple.draw(self.screen)
         score_text = self.font.render(f"Score: {self.score}", True, SCORE_COLOR)
         self.screen.blit(score_text, (10, 10))
+        speed_text = self.font.render(
+            f"Speed: x{SPEEDS[self.speed_idx]}", True, SCORE_COLOR
+        )
+        self.screen.blit(speed_text, (10 + score_text.get_width() + 20, 10))
 
     def _show_end_screen(self, title: str) -> None:
         self.screen.fill(BACKGROUND_COLOR)

@@ -1,8 +1,6 @@
 import random
 import pygame
 from srcs.constants import (
-    CELL_SIZE,
-    GRID_SIZE,
     GREEN_APPLE_COLOR,
     RED_APPLE_COLOR,
 )
@@ -12,15 +10,17 @@ from srcs.snake import Snake
 class Apple:
     color = GREEN_APPLE_COLOR
 
-    def __init__(self, forbidden: list):
+    def __init__(self, forbidden: list, grid_size: int, cell_size: int):
+        self.grid_size = grid_size
+        self.cell_size = cell_size
         self.position = self._random_position(forbidden)
 
     def _random_position(self, forbidden: list) -> tuple[int, int]:
         forbidden_set = set(forbidden)
         while True:
             position = (
-                random.randint(1, GRID_SIZE - 2),
-                random.randint(1, GRID_SIZE - 2),
+                random.randint(1, self.grid_size - 2),
+                random.randint(1, self.grid_size - 2),
             )
             if position not in forbidden_set:
                 return position
@@ -34,10 +34,10 @@ class Apple:
 
     def draw(self, surface: pygame.Surface) -> None:
         rect = pygame.Rect(
-            self.position[0] * CELL_SIZE,
-            self.position[1] * CELL_SIZE,
-            CELL_SIZE,
-            CELL_SIZE,
+            self.position[0] * self.cell_size,
+            self.position[1] * self.cell_size,
+            self.cell_size,
+            self.cell_size,
         )
         pygame.draw.rect(surface, self.color, rect)
 

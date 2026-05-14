@@ -41,8 +41,15 @@ def main():
         action="store_true",
         help="Do not train the agent",
     )
+    parser.add_argument(
+        "--board",
+        type=int,
+        default=None,
+        metavar="N",
+        help="Board size in cells (default: from constants.py)",
+    )
     args = parser.parse_args()
-    agent = Agent()
+    agent = Agent(grid_size=args.board)
 
     agent.preconfigure(args.load, args.dontlearn)
 
