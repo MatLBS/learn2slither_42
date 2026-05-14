@@ -108,7 +108,7 @@ class Environment:
         self.clock.tick(FPS * SPEEDS[self.speed_idx])
 
     def determine_reward(self, done: bool, event: str | None) -> int:
-        if not done:
+        if done:
             return -100
         elif event == "red":
             return -10
@@ -128,8 +128,8 @@ class Environment:
             self.snake.change_direction((1, 0))
         done, event = self._update()
         reward = self.determine_reward(done, event)
-        new_state = self.get_state() if done else None
-        return (new_state, reward, done)
+        next_state = self.get_state() if not done else None
+        return (next_state, reward, done)
 
     def _all_apples(self) -> list:
         return [self.red_apple] + self.green_apples
@@ -148,12 +148,12 @@ class Environment:
             if not self.step_by_step or arrow_pressed:
                 done, _ = self._update()
             else:
-                done = True
+                done = False
             self._draw()
             pygame.display.flip()
             self.clock.tick(FPS * SPEEDS[self.speed_idx])
 
-            if not done:
+            if done:
                 self._show_end_screen("GAME OVER")
             elif len(self.snake.positions) == self.grid_size * self.grid_size:
                 self._show_end_screen("YOU WIN!")
@@ -183,20 +183,20 @@ class Environment:
 
     def _update(self) -> tuple[bool, str | None]:
         if not self.snake.move():
-            return False, None
+            return True, None
         head = self.snake.positions[0]
         for apple in self._all_apples():
             if head == apple.position:
                 point = apple.on_eat(self.snake)
                 self.score += point
                 if not self.snake.positions:
-                    return False, None
+                    return True, None
                 apple.respawn(self._obstacles_excluding(apple))
                 if point == 0:
-                    return True, "red"
+                    return False, "red"
                 else:
-                    return True, "green"
-        return True, None
+                    return False, "green"
+        return False, None
 
     def _draw(self) -> None:
         self.screen.fill(BACKGROUND_COLOR)

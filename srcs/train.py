@@ -1,9 +1,12 @@
 import argparse
 from srcs.agent import Agent
+from srcs.deep_q_network import DQNAgent
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Train the Snake Q-learning agent")
+    parser = argparse.ArgumentParser(
+        description="Train a Snake RL agent (tabular Q-learning or DQN)"
+    )
     parser.add_argument(
         "-e",
         "--episodes",
@@ -20,21 +23,21 @@ def main():
         "-d",
         "--display",
         action="store_true",
-        help="Display the board during training",
+        help="Display the grid during training",
     )
     parser.add_argument(
         "-save",
         type=str,
         default=None,
         metavar="PATH",
-        help="Path to save the trained Q-table (e.g. models/10sess.txt)",
+        help="Path to save the trained model (Q-table .pkl or DQN .pth)",
     )
     parser.add_argument(
         "-load",
         type=str,
         default=None,
         metavar="PATH",
-        help="Path to load the pre-trained Q-table (e.g. models/10sess.txt)",
+        help="Path to load a pre-trained model (Q-table .pkl or DQN .pth)",
     )
     parser.add_argument(
         "-dontlearn",
@@ -42,23 +45,30 @@ def main():
         help="Do not train the agent",
     )
     parser.add_argument(
-        "--board",
+        "--grid",
         type=int,
         default=None,
         metavar="N",
         help="Board size in cells (default: from constants.py)",
     )
+    parser.add_argument(
+        "-dqn",
+        action="store_true",
+        help="Use Deep Q-Network for training",
+    )
     args = parser.parse_args()
-    agent = Agent(grid_size=args.board)
+
+    if args.dqn:
+        agent = DQNAgent()
+    else:
+        agent = Agent(grid_size=args.grid)
 
     agent.preconfigure(args.load, args.dontlearn)
-
     agent.train(
         episodes=args.episodes,
         display=args.display,
         learn=not args.dontlearn,
     )
-
     agent.postconfigure(args.episodes, args.save, args.show_render)
 
 

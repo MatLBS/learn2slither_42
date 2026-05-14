@@ -10,7 +10,7 @@ def main():
         help="Step-by-step mode: snake advances one cell per arrow press",
     )
     parser.add_argument(
-        "--board",
+        "--grid",
         type=int,
         default=None,
         metavar="N",
@@ -18,8 +18,8 @@ def main():
     )
     args = parser.parse_args()
 
-    if args.board is not None:
-        env = Environment(grid_size=args.board)
+    if args.grid is not None:
+        env = Environment(grid_size=args.grid)
     else:
         env = Environment()
     env.step_by_step = args.sbs
