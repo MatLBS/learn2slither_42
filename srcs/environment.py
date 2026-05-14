@@ -98,13 +98,13 @@ class Environment:
 
     def determine_reward(self, done: bool, event: str | None) -> int:
         if not done:
-            return -10
+            return -100
         elif event == "red":
-            return -1
+            return -10
         elif event == "green":
-            return 1
+            return 10
         else:
-            return 0
+            return -1
 
     def step(self, action: tuple[int, int]) -> tuple:
         if action == UP:
