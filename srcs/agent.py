@@ -2,7 +2,9 @@ import os
 import random
 import numpy as np
 from tqdm import tqdm
+import pickle
 from srcs.environment import Environment
+from srcs.display import plot_scores
 
 
 class Agent:
@@ -14,6 +16,7 @@ class Agent:
         self.max_epsilon = 1.0
         self.min_epsilon = 0.05
         self.decay_rate = 0.00005
+        self.scores = []
         self.env = Environment()
 
     def add_state(self, state: str) -> None:
@@ -49,21 +52,27 @@ class Agent:
         directory = os.path.dirname(path)
         if directory:
             os.makedirs(directory, exist_ok=True)
-        with open(path, "w") as f:
-            for state, values in self.q_table.items():
-                line = state + " " + " ".join(str(v) for v in values)
-                f.write(line + "\n")
+        with open(path, "wb") as f:
+            pickle.dump(self.q_table, f)
+        print(f"Q-table saved to {path}")
 
     def load_q_table(self, path: str) -> None:
-        with open(path, "r") as f:
-            for line in f:
-                parts = line.strip().split()
-                state = parts[0]
-                values = np.array([float(x) for x in parts[1:]])
-                self.q_table[state] = values
+        with open(path, "rb") as f:
+            self.q_table = pickle.load(f)
+
+    def preconfigure(self, load=None, dontlearn=False) -> None:
+        if load:
+            self.load_q_table(load)
+        if dontlearn:
+            self.max_epsilon = 0
+
+    def postconfigure(self, episodes, save=None, show_render=False) -> None:
+        if save:
+            self.save_q_table(save)
+        if show_render:
+            plot_scores(self.scores, episodes, window=100)
 
     def train(self, episodes=100, display=False, learn=True) -> list[int]:
-        scores = []
         for episode in tqdm(range(episodes), desc="Training", unit="ep"):
             self.env.reset()
             state = self.env.get_state()
@@ -80,5 +89,4 @@ class Agent:
                 state = new_state
                 if display:
                     self.env.render()
-            scores.append(episode_score)
-        return scores
+            self.scores.append(episode_score)

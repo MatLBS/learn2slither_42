@@ -1,5 +1,6 @@
 import sys
 import pygame
+import numpy as np
 from srcs.constants import (
     SCREEN_WIDTH,
     SCREEN_HEIGHT,
@@ -40,28 +41,51 @@ class Environment:
             self.green_apples.append(Apple(forbidden))
         self.score = 0
 
-    def get_state(self) -> str:
+    def get_state(self) -> str | None:
+        if not self.snake.positions:
+            return None
+
         head_x, head_y = self.snake.positions[0]
         body = set(self.snake.positions[1:])
-        green_positions = {a.position for a in self.green_apples}
         red_position = self.red_apple.position
+        state = []
 
-        def cell_char(x: int, y: int) -> str:
-            if x == 0 or x == GRID_SIZE - 1 or y == 0 or y == GRID_SIZE - 1:
-                return "W"
-            if (x, y) == (head_x, head_y):
-                return "H"
+        def is_danger(x: int, y: int) -> int:
+            if x <= 0 or x >= GRID_SIZE - 1:
+                return 1
+            if y <= 0 or y >= GRID_SIZE - 1:
+                return 1
             if (x, y) in body:
-                return "S"
-            if (x, y) in green_positions:
-                return "G"
+                return 1
             if (x, y) == red_position:
-                return "R"
-            return "0"
+                return 1
+            return 0
 
-        row = "".join(cell_char(x, head_y) for x in range(GRID_SIZE))
-        col = "".join(cell_char(head_x, y) for y in range(GRID_SIZE))
-        return row + "_" + col
+        dx, dy = self.snake.direction
+        dir_u = (dx, dy) == (0, -1)
+        dir_r = (dx, dy) == (1, 0)
+        dir_d = (dx, dy) == (0, 1)
+        dir_l = (dx, dy) == (-1, 0)
+
+        food = min(
+            self.green_apples,
+            key=lambda a: abs(a.position[0] - head_x) + abs(a.position[1] - head_y),
+        )
+        food_x, food_y = food.position
+
+        state.append(int(dir_u))
+        state.append(int(dir_r))
+        state.append(int(dir_d))
+        state.append(int(dir_l))
+        state.append(int(food_y < head_y))
+        state.append(int(food_x > head_x))
+        state.append(int(food_y > head_y))
+        state.append(int(food_x < head_x))
+        state.append(is_danger(head_x, head_y - 1))
+        state.append(is_danger(head_x + 1, head_y))
+        state.append(is_danger(head_x, head_y + 1))
+        state.append(is_danger(head_x - 1, head_y))
+        return tuple(state)
 
     def render(self) -> None:
         for event in pygame.event.get():
@@ -74,13 +98,13 @@ class Environment:
 
     def determine_reward(self, done: bool, event: str | None) -> int:
         if not done:
-            return -100
-        elif event == "red":
             return -10
-        elif event == "green":
-            return 10
-        else:
+        elif event == "red":
             return -1
+        elif event == "green":
+            return 1
+        else:
+            return 0
 
     def step(self, action: tuple[int, int]) -> tuple:
         if action == UP:

@@ -10,7 +10,7 @@ def moving_average(scores: list, window=10) -> np.ndarray:
     return np.convolve(scores, weights, mode="valid")
 
 
-def plot_scores(scores: list, window=10) -> None:
+def plot_scores(scores: list, nb_episodes: int, window=10) -> None:
     if not scores:
         return
 
@@ -44,7 +44,7 @@ def plot_scores(scores: list, window=10) -> None:
     ax.grid(True, alpha=0.3)
 
     plt.tight_layout()
-    save_path = os.path.join("graphs", "training_progress.png")
+    save_path = os.path.join("graphs", f"training_progress_{nb_episodes}.png")
     os.makedirs(os.path.dirname(save_path), exist_ok=True)
     plt.savefig(save_path, dpi=120)
     plt.close()

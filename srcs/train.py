@@ -1,6 +1,5 @@
 import argparse
 from srcs.agent import Agent
-from srcs.display import plot_scores
 
 
 def main():
@@ -45,22 +44,15 @@ def main():
     args = parser.parse_args()
     agent = Agent()
 
-    if args.load:
-        agent.load_q_table(args.load)
+    agent.preconfigure(args.load, args.dontlearn)
 
-    if args.dontlearn:
-        agent.max_epsilon = 0
-
-    scores = agent.train(
+    agent.train(
         episodes=args.episodes,
         display=args.display,
         learn=not args.dontlearn,
     )
-    if args.save:
-        agent.save_q_table(args.save)
-        print(f"Q-table saved to {args.save}")
-    if args.show_render:
-        plot_scores(scores, window=100)
+
+    agent.postconfigure(args.episodes, args.save, args.show_render)
 
 
 if __name__ == "__main__":
