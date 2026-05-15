@@ -20,6 +20,9 @@ class Agent:
         if grid_size is None:
             self.env = Environment()
         else:
+            assert (
+                isinstance(grid_size, int) and grid_size >= 5 and grid_size <= 30
+            ), "Grid size must be a positive integer between 5 and 30"
             self.env = Environment(grid_size=grid_size)
 
     def add_state(self, state: str) -> None:
