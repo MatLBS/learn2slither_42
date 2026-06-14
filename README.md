@@ -1,5 +1,9 @@
 # 🐍 learn2slither_42
 
+## Live version 📡
+
+https://portfolio-learn2slither.vercel.app/
+
 ## Introduction
 
 The goal of this project is to teach a snake to play by itself using **Reinforcement Learning** — without any hardcoded strategy. The agent learns purely from trial and error: it tries actions, observes rewards, and gradually figures out a winning policy.
